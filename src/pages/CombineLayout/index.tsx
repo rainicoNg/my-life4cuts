@@ -145,7 +145,7 @@ const CombineLayout = () => {
     )} gap-px aspect-${getAspectRatio(
       finalImageSize.width,
       finalImageSize.height
-    )} portrait:w-full landscape:h-4/5`;
+    )} portrait:w-4/5 landscape:h-4/5`;
     const aspectRatio = `aspect-${gridAspectRatio()}`;
     return (
       <div className={gridStyle}>
