@@ -1,6 +1,10 @@
+import type { JSX } from "react";
+
 interface ActionButtonProps {
   onClick: () => void;
   label: string;
+  disabled?: boolean;
+  startAddon?: JSX.Element;
   variant?: "positive" | "negative" | "default";
   className?: string;
 }
@@ -14,14 +18,18 @@ const buttonStyle = {
 const ActionButton = ({
   onClick,
   label,
+  disabled,
+  startAddon,
   variant = "default",
   className,
 }: ActionButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className={`${buttonStyle[variant]} ${className}`}
+      disabled={disabled}
+      className={`${buttonStyle[variant]} disabled:bg-stone-300 flex flex-row gap-1 items-center ${className}`}
     >
+      {startAddon && <span>{startAddon}</span>}
       {label}
     </button>
   );

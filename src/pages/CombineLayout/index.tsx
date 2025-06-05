@@ -1,7 +1,11 @@
+import { HiDocumentDownload } from "react-icons/hi";
+
 import ActionButton from "@/components/ActionButton";
+import GridLayoutButton from "@/components/GridLayoutButton";
 import LayoutGrid from "@/components/LayoutGrid";
-// import { getAspectRatio } from "@/utils/helper";
-import { type ChangeEvent, useState } from "react";
+import { getAspectRatio } from "@/utils/helper";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
+import { gridLayoutOptions } from "./constants";
 
 const CombineLayout = () => {
   const [finalImageSize] = useState<{
@@ -11,16 +15,12 @@ const CombineLayout = () => {
     width: 2268,
     height: 4032,
   });
-  const [layout] = useState<{ row: number; col: number }>({
-    row: 2,
-    col: 2,
-  });
+  const [layout, setLayout] = useState<{ row: number; col: number }>(
+    gridLayoutOptions[0]
+  );
   const [selectedImgs, setSelectedImgs] = useState<string[][]>(
     Array.from({ length: layout.row }, () => Array(layout.col).fill(""))
   );
-  // const fileInputRefs = useRef<(HTMLInputElement | null)[][]>(
-  //   Array.from({ length: layout.row }, () => Array(layout.col).fill(null))
-  // );
 
   const handleImageUpload =
     (row: number, col: number) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +135,6 @@ const CombineLayout = () => {
     }
   };
 
-  /*
   const gridAspectRatio = useCallback(
     () =>
       getAspectRatio(
@@ -144,40 +143,14 @@ const CombineLayout = () => {
       ),
     [finalImageSize.width, finalImageSize.height, layout.row, layout.col]
   );
-  */
 
-  const LayoutGridBoxTemp = () => {
-    const gridStyle = `grid grid-cols-2 gap-px aspect-9/16 portrait:w-9/10 landscape:h-9/10`;
-    const aspectRatio = `aspect-9/16`;
-    return (
-      <div className={gridStyle}>
-        {Array.from({ length: layout.row }).map((_, row) =>
-          Array.from({ length: layout.col }).map((_, col) => (
-            <LayoutGrid
-              key={`${row}-${col}`}
-              position={{ row, col }}
-              content={selectedImgs[row][col]}
-              onUpload={handleImageUpload(row, col)}
-              className={aspectRatio}
-            />
-          ))
-        )}
-      </div>
-    );
-  };
-
-  /* dynamic grid wip
   const LayoutGridBox = () => {
     const gridStyle = `grid grid-cols-${
       layout.col
-    } grid-cols-[200px_minmax(900px,_1fr)_100px]  gap-px aspect-${getAspectRatio(
+    } gap-px aspect-${getAspectRatio(
       finalImageSize.width,
       finalImageSize.height
-    )} portrait:w-4/5 landscape:h-4/5`;
-    const flexStyle = `flex flex-col items-center aspect-${getAspectRatio(
-      finalImageSize.width,
-      finalImageSize.height
-    )} portrait:w-4/5 landscape:h-4/5`;
+    )} portrait:w-full landscape:h-4/5`;
     const aspectRatio = `aspect-${gridAspectRatio()}`;
     return (
       <div className={gridStyle}>
@@ -195,21 +168,49 @@ const CombineLayout = () => {
       </div>
     );
   };
-  */
+
+  const GridLayoutPanel = useMemo(
+    () => (
+      <div className="flex flex-col h-full">
+        <div className="landscape:text-xs">Layout Template</div>
+        <div className="flex portrait:flex-row portrait:overflow-x-auto landscape:flex-col landscape:overflow-y-auto landscape:h-full landscape:gap-4 portrait:gap-8 items-end">
+          {gridLayoutOptions.map((opt) => (
+            <GridLayoutButton
+              key={`${opt.row}*${opt.col}`}
+              row={opt.row}
+              col={opt.col}
+              onClickCallback={() => {
+                setLayout(opt);
+                setSelectedImgs(
+                  Array.from({ length: opt.row }, () => Array(opt.col).fill(""))
+                );
+              }}
+              active={layout.row === opt.row && layout.col === opt.col}
+            />
+          ))}
+        </div>
+      </div>
+    ),
+    [gridLayoutOptions, setLayout, setSelectedImgs, layout.row, layout.col]
+  );
 
   return (
     <div className="w-full h-full">
-      <div className="h-full flex flex-col items-center gap-4">
-        <LayoutGridBoxTemp />
+      <div className="h-full flex portrait:flex-col landscape:flex-row items-center justify-between">
+        <div />
+        <div className="flex flex-col gap-4 items-center justify-center portrait:w-full landscape:h-full portrait:mb-4">
+          <LayoutGridBox />
 
-        {selectedImgs.flat().some((img) => img) && (
           <ActionButton
+            disabled={!selectedImgs.flat().some((img) => img)}
             onClick={async () => {
               await handleDownloadImg();
             }}
             label="Download"
+            startAddon={<HiDocumentDownload />}
           />
-        )}
+        </div>
+        {GridLayoutPanel}
       </div>
     </div>
   );
