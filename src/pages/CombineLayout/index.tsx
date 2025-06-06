@@ -1,10 +1,11 @@
 import { HiDocumentDownload } from "react-icons/hi";
+import { MdOutlineDelete } from "react-icons/md";
 
 import ActionButton from "@/components/ActionButton";
 import GridLayoutButton from "@/components/GridLayoutButton";
 import LayoutGrid from "@/components/LayoutGrid";
 import { getAspectRatio, getGridCols } from "@/utils/helper";
-import { type ChangeEvent, useMemo, useState } from "react";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import { gridLayoutOptions } from "./constants";
 
 const CombineLayout = () => {
@@ -37,6 +38,17 @@ const CombineLayout = () => {
         reader.readAsDataURL(img);
       }
     };
+
+  const handleResetSelectedImgs = useCallback(
+    (row?: number, col?: number) => {
+      setSelectedImgs(
+        Array.from({ length: row ?? layout.row }, () =>
+          Array(col ?? layout.col).fill("")
+        )
+      );
+    },
+    [layout.row, layout.col]
+  );
 
   const handleDownloadImg = async (
     width = finalImageSize.width,
@@ -167,9 +179,7 @@ const CombineLayout = () => {
               col={opt.col}
               onClickCallback={() => {
                 setLayout(opt);
-                setSelectedImgs(
-                  Array.from({ length: opt.row }, () => Array(opt.col).fill(""))
-                );
+                handleResetSelectedImgs(opt.row, opt.col);
               }}
               active={layout.row === opt.row && layout.col === opt.col}
             />
@@ -187,14 +197,23 @@ const CombineLayout = () => {
         <div className="flex flex-col gap-4 items-center justify-center portrait:w-full landscape:h-full portrait:mb-4">
           <LayoutGridBox />
 
-          <ActionButton
-            disabled={!selectedImgs.flat().some((img) => img)}
-            onClick={async () => {
-              await handleDownloadImg();
-            }}
-            label="Download"
-            startAddon={<HiDocumentDownload />}
-          />
+          <div className="flex flex-row gap-4 items-center justify-between portrait:w-4/5 landscape:h-4/5">
+            <ActionButton
+              variant="negative"
+              disabled={!selectedImgs.flat().some((img) => img)}
+              onClick={handleResetSelectedImgs}
+              label="Reset"
+              startAddon={<MdOutlineDelete />}
+            />
+            <ActionButton
+              disabled={!selectedImgs.flat().some((img) => img)}
+              onClick={async () => {
+                await handleDownloadImg();
+              }}
+              label="Download"
+              startAddon={<HiDocumentDownload />}
+            />
+          </div>
         </div>
         {GridLayoutPanel}
       </div>
